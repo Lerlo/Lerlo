@@ -100,7 +100,7 @@ paths:
       summary: 更新项目
       description: |
         支持部分字段更新。
-        当 `copy_test_template=true` 时，会按当前或传入模板ID重新复制腾讯文档测试模板并覆盖文档信息。
+        当传入 `test_doc_content` 时，会更新创建时已复制的腾讯测试文档内容（不会重新复制模板）。
       parameters:
         - $ref: '#/components/parameters/ProjectId'
       requestBody:
@@ -383,12 +383,9 @@ components:
           type: integer
         backend_developer_id:
           type: integer
-        tencent_template_id:
+        test_doc_content:
           type: string
-          maxLength: 100
-        copy_test_template:
-          type: boolean
-          default: false
+          description: 更新已复制腾讯测试文档的内容
 
     PaginatedProjects:
       type: object

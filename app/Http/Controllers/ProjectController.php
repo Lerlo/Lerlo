@@ -70,24 +70,17 @@ class ProjectController extends Controller
     }
 
     /**
-     * 更新项目；当 copy_test_template=true 时会重新复制腾讯文档模板。
+     * 更新项目基础信息；若传 test_doc_content 则更新已复制测试文档内容，不再复制模板。
      */
     public function update(UpdateProjectRequest $request, Project $project): JsonResponse
     {
         $validated = $request->validated();
-        $copyTemplate = (bool) ($validated['copy_test_template'] ?? false);
+        $testDocContent = $validated['test_doc_content'] ?? null;
 
-        unset($validated['copy_test_template']);
+        unset($validated['test_doc_content']);
 
-        if ($copyTemplate) {
-            $templateId = $validated['tencent_template_id'] ?? $project->tencent_template_id;
-            $projectName = $validated['name'] ?? $project->name;
-
-            $doc = $this->tencentDocsService->copyTemplate($templateId, $projectName);
-
-            $validated['tencent_template_id'] = $templateId;
-            $validated['tencent_test_doc_id'] = $doc['doc_id'];
-            $validated['tencent_test_doc_url'] = $doc['doc_url'];
+        if ($testDocContent !== null && $project->tencent_test_doc_id) {
+            $this->tencentDocsService->updateCopiedTestDoc((string) $project->tencent_test_doc_id, $testDocContent);
         }
 
         $project->fill($validated);

@@ -33,8 +33,7 @@ class UpdateProjectRequest extends FormRequest
             'designer_id' => ['sometimes', 'required', 'integer', 'exists:users,id'],
             'frontend_developer_id' => ['sometimes', 'required', 'integer', 'exists:users,id'],
             'backend_developer_id' => ['sometimes', 'required', 'integer', 'exists:users,id'],
-            'tencent_template_id' => ['sometimes', 'required', 'string', 'max:100'],
-            'copy_test_template' => ['sometimes', 'boolean'],
+            'test_doc_content' => ['sometimes', 'required', 'string'],
         ];
     }
 }

@@ -73,15 +73,14 @@ curl -X PATCH 'http://localhost:8000/api/projects/1' \
   }'
 ```
 
-### 4.2 更新时重新复制测试模板
+### 4.2 更新时同步已复制测试文档内容
 
 ```bash
 curl -X PATCH 'http://localhost:8000/api/projects/1' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
-    "copy_test_template": true,
-    "tencent_template_id": "3000000000000000002"
+    "test_doc_content": "测试记录：提测版本 v1.2.0，核心流程通过。"
   }'
 ```
 

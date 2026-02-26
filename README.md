@@ -27,7 +27,7 @@
   - 后端开发（`backend_developer_id`）
 - 腾讯文档集成：
   - 立项时根据指定模板 `tencent_template_id` 自动复制测试模板，落库复制后的文档ID与URL。
-  - 编辑项目时可通过 `copy_test_template=true` 再次复制模板并更新文档信息。
+  - 项目更新时不再复制模板，而是更新创建时复制出的测试文档内容。
 
 ## API（完整增删改查）
 
@@ -69,14 +69,13 @@
 }
 ```
 
-### 更新项目示例（并重新复制模板）
+### 更新项目示例（更新已复制文档内容）
 
 ```json
 {
   "stage": "testing",
   "overall_status": "in_progress",
-  "copy_test_template": true,
-  "tencent_template_id": "3000000000000000002"
+  "test_doc_content": "测试进度：接口联调完成，待回归验证。"
 }
 ```
 

@@ -37,4 +37,20 @@ class TencentDocsService
             'doc_url' => (string) Arr::get($response, 'data.url'),
         ];
     }
+
+    /**
+     * 更新已复制测试文档内容。
+     */
+    public function updateCopiedTestDoc(string $docId, string $content): void
+    {
+        $this->http
+            ->withToken((string) config('services.tencent_docs.token'))
+            ->put(
+                rtrim((string) config('services.tencent_docs.base_url'), '/') . sprintf('/openapi/drive/v2/files/%s/content', $docId),
+                [
+                    'content' => $content,
+                ],
+            )
+            ->throw();
+    }
 }
