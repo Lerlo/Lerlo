@@ -27,11 +27,58 @@
   - 后端开发（`backend_developer_id`）
 - 腾讯文档集成：
   - 立项时根据指定模板 `tencent_template_id` 自动复制测试模板，落库复制后的文档ID与URL。
+  - 编辑项目时可通过 `copy_test_template=true` 再次复制模板并更新文档信息。
 
-## API
+## API（完整增删改查）
 
-- `GET /api/projects`：项目列表（需 Sanctum 登录）
-- `POST /api/projects`：创建项目并触发腾讯文档模板复制（需 Sanctum 登录）
+以下接口均需 `auth:sanctum` 鉴权：
+
+- `GET /api/projects`：分页列表（支持筛选）
+- `GET /api/projects/{project}`：详情
+- `POST /api/projects`：新增（立项 + 自动复制腾讯文档模板）
+- `PUT/PATCH /api/projects/{project}`：更新
+- `DELETE /api/projects/{project}`：删除
+
+### 列表筛选参数
+
+- `stage`：流程阶段
+- `overall_status`：综合状态
+- `project_manager_id`：项目经理ID
+- `keyword`：按项目名称/描述模糊搜索
+- `per_page`：每页数量（1-100）
+
+### 新增项目示例
+
+```json
+{
+  "name": "CRM 重构",
+  "description": "企业 CRM 改版",
+  "stage": "initiation",
+  "design_status": "pending",
+  "frontend_status": "pending",
+  "backend_status": "pending",
+  "overall_status": "in_progress",
+  "design_due_at": "2026-03-10 18:00:00",
+  "frontend_due_at": "2026-03-20 18:00:00",
+  "backend_due_at": "2026-03-25 18:00:00",
+  "project_manager_id": 1,
+  "designer_id": 2,
+  "frontend_developer_id": 3,
+  "backend_developer_id": 4,
+  "tencent_template_id": "3000000000000000001"
+}
+```
+
+### 更新项目示例（并重新复制模板）
+
+```json
+{
+  "stage": "testing",
+  "overall_status": "in_progress",
+  "copy_test_template": true,
+  "tencent_template_id": "3000000000000000002"
+}
+```
 
 ## 腾讯文档配置
 
@@ -51,4 +98,3 @@ TENCENT_DOCS_TARGET_FOLDER_ID=your_folder_id
 composer install
 php artisan migrate
 ```
-
