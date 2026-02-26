@@ -80,6 +80,14 @@
 }
 ```
 
+
+## 接口文档
+
+- OpenAPI 3.0: `docs/openapi.yaml`
+- 快速调试文档: `docs/API.md`
+
+可直接导入 Apifox / Postman / Swagger UI 进行调试。
+
 ## 腾讯文档配置
 
 在 `.env` 中增加以下配置：

@@ -1,0 +1,437 @@
+openapi: 3.0.3
+info:
+  title: 公司项目管理系统 API
+  version: 1.0.0
+  description: |
+    基于 Laravel 12 的项目管理接口，覆盖项目全流程（立项、设计、前端、后端、测试、上线）、
+    状态管理、人员分配，以及腾讯文档测试模板自动复制。
+servers:
+  - url: http://localhost:8000/api
+    description: 本地开发
+security:
+  - sanctumAuth: []
+tags:
+  - name: Projects
+    description: 项目管理
+paths:
+  /projects:
+    get:
+      tags: [Projects]
+      summary: 获取项目分页列表
+      parameters:
+        - in: query
+          name: stage
+          schema:
+            $ref: '#/components/schemas/ProjectStage'
+          description: 流程阶段筛选
+        - in: query
+          name: overall_status
+          schema:
+            $ref: '#/components/schemas/DisciplineStatus'
+          description: 综合状态筛选
+        - in: query
+          name: project_manager_id
+          schema:
+            type: integer
+          description: 项目经理 ID
+        - in: query
+          name: keyword
+          schema:
+            type: string
+            maxLength: 255
+          description: 项目名称或描述关键字
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 15
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProjects'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Projects]
+      summary: 创建项目（立项）
+      description: 创建项目并自动复制腾讯文档模板作为测试模板。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreProjectRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /projects/{project}:
+    get:
+      tags: [Projects]
+      summary: 获取项目详情
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Projects]
+      summary: 更新项目
+      description: |
+        支持部分字段更新。
+        当 `copy_test_template=true` 时，会按当前或传入模板ID重新复制腾讯文档测试模板并覆盖文档信息。
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [Projects]
+      summary: 全量更新项目
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [Projects]
+      summary: 删除项目
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Project deleted successfully.
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    sanctumAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Token
+      description: Laravel Sanctum Bearer Token
+
+  parameters:
+    ProjectId:
+      in: path
+      name: project
+      required: true
+      schema:
+        type: integer
+      description: 项目 ID
+
+  responses:
+    Unauthorized:
+      description: 未授权
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Unauthenticated.
+    ValidationError:
+      description: 参数校验失败
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: The given data was invalid.
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: No query results for model.
+
+  schemas:
+    ProjectStage:
+      type: string
+      enum: [initiation, design, frontend_development, backend_development, testing, launch]
+    DisciplineStatus:
+      type: string
+      enum: [pending, in_progress, completed, blocked]
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: CRM 重构
+        description:
+          type: string
+          nullable: true
+        stage:
+          $ref: '#/components/schemas/ProjectStage'
+        design_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        frontend_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        backend_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        overall_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        design_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        frontend_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        backend_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        project_manager_id:
+          type: integer
+        designer_id:
+          type: integer
+        frontend_developer_id:
+          type: integer
+        backend_developer_id:
+          type: integer
+        tencent_template_id:
+          type: string
+          maxLength: 100
+        tencent_test_doc_id:
+          type: string
+          nullable: true
+        tencent_test_doc_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    StoreProjectRequest:
+      type: object
+      required:
+        - name
+        - stage
+        - design_status
+        - frontend_status
+        - backend_status
+        - overall_status
+        - project_manager_id
+        - designer_id
+        - frontend_developer_id
+        - backend_developer_id
+        - tencent_template_id
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        stage:
+          $ref: '#/components/schemas/ProjectStage'
+        design_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        frontend_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        backend_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        overall_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        design_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        frontend_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        backend_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        project_manager_id:
+          type: integer
+        designer_id:
+          type: integer
+        frontend_developer_id:
+          type: integer
+        backend_developer_id:
+          type: integer
+        tencent_template_id:
+          type: string
+          maxLength: 100
+
+    UpdateProjectRequest:
+      type: object
+      description: 所有字段均可选，按需提交。
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        stage:
+          $ref: '#/components/schemas/ProjectStage'
+        design_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        frontend_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        backend_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        overall_status:
+          $ref: '#/components/schemas/DisciplineStatus'
+        design_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        frontend_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        backend_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        project_manager_id:
+          type: integer
+        designer_id:
+          type: integer
+        frontend_developer_id:
+          type: integer
+        backend_developer_id:
+          type: integer
+        tencent_template_id:
+          type: string
+          maxLength: 100
+        copy_test_template:
+          type: boolean
+          default: false
+
+    PaginatedProjects:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        first_page_url:
+          type: string
+        from:
+          type: integer
+          nullable: true
+        last_page:
+          type: integer
+        last_page_url:
+          type: string
+        links:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                nullable: true
+              label:
+                type: string
+              active:
+                type: boolean
+        next_page_url:
+          type: string
+          nullable: true
+        path:
+          type: string
+        per_page:
+          type: integer
+        prev_page_url:
+          type: string
+          nullable: true
+        to:
+          type: integer
+          nullable: true
+        total:
+          type: integer
