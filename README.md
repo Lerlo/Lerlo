@@ -80,6 +80,24 @@
 ```
 
 
+
+## 前端页面
+
+新增了项目管理前端页面（Blade + 原生 JS）：
+
+- `GET /projects`：项目列表 + 筛选
+- `GET /projects/create`：新建立项
+- `GET /projects/{id}`：项目详情
+- `GET /projects/{id}/edit`：项目编辑 + 删除 + 更新测试文档内容
+
+页面调用 `/api/projects` 接口，使用 `localStorage.sanctum_token` 作为 Bearer Token。
+
+相关文件：
+- `resources/views/layouts/app.blade.php`
+- `resources/views/projects/*.blade.php`
+- `public/js/project-pages.js`
+- `public/css/project-pages.css`
+
 ## 接口文档
 
 - OpenAPI 3.0: `docs/openapi.yaml`
