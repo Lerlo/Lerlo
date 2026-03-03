@@ -7,6 +7,12 @@
 
 > 认证方式：`Authorization: Bearer <sanctum_token>`
 
+> 权限要求：
+> - 列表/详情：`projects.view`
+> - 创建：`projects.create`
+> - 更新：`projects.update`
+> - 删除：`projects.delete`
+
 ## 1. 获取项目列表
 
 ```bash

@@ -81,6 +81,34 @@
 
 
 
+
+## 权限分配与控制
+
+系统采用 **角色 + 权限点** 控制，默认权限点：
+
+- `projects.view`：查看项目
+- `projects.create`：创建项目
+- `projects.update`：更新项目
+- `projects.delete`：删除项目
+- `projects.update_test_doc`：更新已复制腾讯测试文档
+
+默认角色建议：
+
+- `admin`：全部权限
+- `project_manager`：查看/创建/更新/更新测试文档
+- `tester`：查看/更新测试文档
+- `designer`、`frontend_developer`、`backend_developer`：查看
+
+实现位置：
+- 权限定义：`app/Support/ProjectPermissionMap.php`
+- 权限计算：`app/Support/ProjectPermissionService.php`
+- 路由拦截中间件：`app/Http/Middleware/EnsureProjectPermission.php`
+- 路由绑定：`routes/api.php`、`routes/web.php`
+
+用户模型需要包含：
+- `role` 字段（字符串）
+- `permissions` 字段（JSON 数组，可选，作为额外授权）
+
 ## 前端页面
 
 新增了项目管理前端页面（Blade + 原生 JS）：

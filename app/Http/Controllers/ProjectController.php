@@ -8,6 +8,8 @@ use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Services\TencentDocsService;
+use App\Support\ProjectPermissionMap;
+use App\Support\ProjectPermissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,6 +17,7 @@ class ProjectController extends Controller
 {
     public function __construct(
         protected TencentDocsService $tencentDocsService,
+        protected ProjectPermissionService $permissionService,
     ) {
     }
 
@@ -78,6 +81,23 @@ class ProjectController extends Controller
         $testDocContent = $validated['test_doc_content'] ?? null;
 
         unset($validated['test_doc_content']);
+
+        $basicUpdatePayload = $validated;
+        unset($basicUpdatePayload['test_doc_content']);
+
+        if ($basicUpdatePayload !== []
+            && !$this->permissionService->can($request->user(), ProjectPermissionMap::UPDATE)) {
+            return response()->json([
+                'message' => 'Forbidden: missing permission ' . ProjectPermissionMap::UPDATE,
+            ], 403);
+        }
+
+        if ($testDocContent !== null
+            && !$this->permissionService->can($request->user(), ProjectPermissionMap::UPDATE_TEST_DOC)) {
+            return response()->json([
+                'message' => 'Forbidden: missing permission ' . ProjectPermissionMap::UPDATE_TEST_DOC,
+            ], 403);
+        }
 
         if ($testDocContent !== null && $project->tencent_test_doc_id) {
             $this->tencentDocsService->updateCopiedTestDoc((string) $project->tencent_test_doc_id, $testDocContent);

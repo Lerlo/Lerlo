@@ -12,7 +12,9 @@
     <h1>公司项目管理平台</h1>
     <nav>
         <a href="{{ route('projects.index') }}">项目列表</a>
-        <a href="{{ route('projects.create') }}">新建立项</a>
+        @if(($permissions['projects.create'] ?? false) === true)
+            <a href="{{ route('projects.create') }}">新建立项</a>
+        @endif
     </nav>
 </header>
 <main class="container">
@@ -22,6 +24,7 @@
     window.projectApp = {
         apiBase: '/api/projects',
         token: localStorage.getItem('sanctum_token') || '',
+        permissions: @json($permissions ?? []),
     };
 </script>
 <script src="/js/project-pages.js"></script>

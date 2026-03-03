@@ -33,5 +33,5 @@
 @endsection
 
 @push('scripts')
-<script>window.renderProjectListPage();</script>
+<script>window.renderProjectListPage({ canUpdate: @json($permissions['projects.update'] ?? false) });</script>
 @endpush

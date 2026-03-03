@@ -27,7 +27,7 @@
         return data;
     }
 
-    window.renderProjectListPage = function () {
+    window.renderProjectListPage = function ({ canUpdate = false } = {}) {
         const body = document.getElementById('projectTableBody');
         const msg = document.getElementById('listMessage');
 
@@ -39,19 +39,20 @@
                     if (val) params.set(id, val);
                 });
                 const data = await api(`?${params.toString()}`);
-                body.innerHTML = (data.data || []).map((p) => `
+                body.innerHTML = (data.data || []).map((p) => {
+                    const actions = [`<a href="/projects/${p.id}">详情</a>`];
+                    if (canUpdate) actions.push(`<a href="/projects/${p.id}/edit">编辑</a>`);
+
+                    return `
                     <tr>
                         <td>${p.id}</td>
                         <td>${p.name}</td>
                         <td>${p.stage}</td>
                         <td>${p.overall_status}</td>
                         <td>${p.project_manager_id}</td>
-                        <td>
-                            <a href="/projects/${p.id}">详情</a> |
-                            <a href="/projects/${p.id}/edit">编辑</a>
-                        </td>
-                    </tr>
-                `).join('');
+                        <td>${actions.join(' | ')}</td>
+                    </tr>`;
+                }).join('');
                 msg.textContent = `共 ${data.total ?? 0} 条`;
             } catch (e) {
                 msg.textContent = e.message;
@@ -88,7 +89,7 @@
         }
     };
 
-    window.renderProjectEditPage = function (id) {
+    window.renderProjectEditPage = function (id, { canDelete = false } = {}) {
         const form = document.getElementById('projectEditForm');
         const msg = document.getElementById('editMessage');
         const deleteBtn = document.getElementById('deleteBtn');
@@ -104,14 +105,16 @@
             }
         });
 
-        deleteBtn.addEventListener('click', async () => {
-            if (!confirm('确认删除该项目？')) return;
-            try {
-                await api(`/${id}`, { method: 'DELETE' });
-                window.location.href = '/projects';
-            } catch (err) {
-                msg.textContent = err.message;
-            }
-        });
+        if (deleteBtn && canDelete) {
+            deleteBtn.addEventListener('click', async () => {
+                if (!confirm('确认删除该项目？')) return;
+                try {
+                    await api(`/${id}`, { method: 'DELETE' });
+                    window.location.href = '/projects';
+                } catch (err) {
+                    msg.textContent = err.message;
+                }
+            });
+        }
     };
 })();
